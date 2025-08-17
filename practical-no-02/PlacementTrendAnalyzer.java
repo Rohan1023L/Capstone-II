@@ -18,21 +18,17 @@ public class PlacementTrendAnalyzer extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Use CardLayout to switch between screens
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Create starting screen
         JPanel startScreen = createStartScreen();
         mainPanel.add(startScreen, "START");
 
-        // Create end screen (will be updated later)
         endScreen = new JPanel();
         mainPanel.add(endScreen, "END");
 
         add(mainPanel);
 
-        // Show start screen initially
         cardLayout.show(mainPanel, "START");
     }
 
@@ -40,12 +36,10 @@ public class PlacementTrendAnalyzer extends JFrame {
         JPanel wrapperPanel = new JPanel();
         wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
 
-        // Graph panel for start screen (shows instructions)
         GraphPanel startGraphPanel = new GraphPanel();
         startGraphPanel.setPreferredSize(new Dimension(800, 400));
         wrapperPanel.add(startGraphPanel);
 
-        // Buttons panel with only Upload CSV and Exit
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
@@ -59,7 +53,6 @@ public class PlacementTrendAnalyzer extends JFrame {
 
         wrapperPanel.add(buttonsPanel);
 
-        // Action listeners
         uploadButton.addActionListener(e -> {
             graphPanel = new GraphPanel();
             graphPanel.loadCSVData();
@@ -77,15 +70,12 @@ public class PlacementTrendAnalyzer extends JFrame {
     }
 
     private void updateEndScreen() {
-        // Clear the end screen
         endScreen.removeAll();
         endScreen.setLayout(new BoxLayout(endScreen, BoxLayout.Y_AXIS));
 
-        // Add the graph panel with loaded data
         graphPanel.setPreferredSize(new Dimension(800, 400));
         endScreen.add(graphPanel);
 
-        // Buttons panel with Train Model and Exit
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
@@ -99,7 +89,6 @@ public class PlacementTrendAnalyzer extends JFrame {
 
         endScreen.add(buttonsPanel);
 
-        // Prediction panel
         JPanel predictionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JLabel label = new JLabel("Enter year to highlight:");
         JTextField yearInput = new JTextField(6);
@@ -111,7 +100,6 @@ public class PlacementTrendAnalyzer extends JFrame {
 
         endScreen.add(predictionPanel);
 
-        // Action listeners
         trainButton.addActionListener(e -> {
             if (graphPanel != null && graphPanel.hasData()) {
                 graphPanel.trainNeuralNetwork();
@@ -142,7 +130,6 @@ public class PlacementTrendAnalyzer extends JFrame {
             }
         });
 
-        // Revalidate and repaint to ensure proper display
         endScreen.revalidate();
         endScreen.repaint();
     }
@@ -180,7 +167,7 @@ class GraphPanel extends JPanel {
         yearCountMap.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line = br.readLine(); // Skip header
+            String line = br.readLine();
             while ((line = br.readLine()) != null) {
                 String[] tokens = line.split(",");
                 if (tokens.length >= 2) {
@@ -209,11 +196,9 @@ class GraphPanel extends JPanel {
             return;
         }
 
-        // Prepare training data
         List<double[]> inputs = new ArrayList<>();
         List<double[]> outputs = new ArrayList<>();
 
-        // Normalize data
         double maxCount = Arrays.stream(placedStudents).max().orElse(1);
 
         for (int i = 0; i < placedStudents.length - 1; i++) {
@@ -232,7 +217,6 @@ class GraphPanel extends JPanel {
             outputs.add(output);
         }
 
-        // Initialize and train neural network
         neuralNetwork = new NeuralNetwork(3, 10, 5, 1);
         neuralNetwork.train(inputs, outputs, 1000, 0.1);
     }
@@ -265,7 +249,6 @@ class GraphPanel extends JPanel {
         if (inputYearNum <= lastKnownYear)
             return false;
 
-        // Use neural network for prediction
         double maxCount = Arrays.stream(placedStudents).max().orElse(1);
 
         double[] input = new double[3];
@@ -351,7 +334,6 @@ class GraphPanel extends JPanel {
             return;
         }
 
-        // Draw the graph when data is loaded
         g2.setColor(Color.BLACK);
         g2.drawLine(padding, padding, padding, height - padding);
         g2.drawLine(padding, height - padding, width - padding, height - padding);
@@ -403,7 +385,6 @@ class GraphPanel extends JPanel {
                 g2.setColor(Color.RED);
                 g2.drawString(percText, x, y - 5);
 
-                // Add DL indicator
                 if (isDLPrediction) {
                     g2.setColor(Color.DARK_GRAY);
                     g2.setFont(new Font("SansSerif", Font.BOLD, 10));
@@ -413,8 +394,6 @@ class GraphPanel extends JPanel {
         }
     }
 }
-
-// Neural Network implementation in pure Java
 class NeuralNetwork {
     private int inputSize;
     private int hiddenSize1;
@@ -437,7 +416,6 @@ class NeuralNetwork {
         this.hiddenSize2 = hiddenSize2;
         this.outputSize = outputSize;
 
-        // Initialize weights and biases
         weightsInputHidden1 = new double[inputSize][hiddenSize1];
         weightsHidden1Hidden2 = new double[hiddenSize1][hiddenSize2];
         weightsHidden2Output = new double[hiddenSize2][outputSize];
@@ -450,7 +428,6 @@ class NeuralNetwork {
     }
 
     private void initializeWeights() {
-        // Xavier initialization
         double scale1 = Math.sqrt(2.0 / inputSize);
         double scale2 = Math.sqrt(2.0 / hiddenSize1);
         double scale3 = Math.sqrt(2.0 / hiddenSize2);
@@ -497,12 +474,10 @@ class NeuralNetwork {
     }
 
     public double[] predict(double[] input) {
-        // Forward propagation
         double[] hidden1 = new double[hiddenSize1];
         double[] hidden2 = new double[hiddenSize2];
         double[] output = new double[outputSize];
 
-        // Input to Hidden1
         for (int j = 0; j < hiddenSize1; j++) {
             double sum = biasHidden1[j];
             for (int i = 0; i < inputSize; i++) {
@@ -511,7 +486,6 @@ class NeuralNetwork {
             hidden1[j] = relu(sum);
         }
 
-        // Hidden1 to Hidden2
         for (int j = 0; j < hiddenSize2; j++) {
             double sum = biasHidden2[j];
             for (int i = 0; i < hiddenSize1; i++) {
@@ -520,7 +494,6 @@ class NeuralNetwork {
             hidden2[j] = relu(sum);
         }
 
-        // Hidden2 to Output
         for (int j = 0; j < outputSize; j++) {
             double sum = biasOutput[j];
             for (int i = 0; i < hiddenSize2; i++) {
@@ -540,14 +513,12 @@ class NeuralNetwork {
                 double[] input = inputs.get(sample);
                 double[] target = outputs.get(sample);
 
-                // Forward propagation
                 double[] hidden1 = new double[hiddenSize1];
                 double[] hidden1Raw = new double[hiddenSize1];
                 double[] hidden2 = new double[hiddenSize2];
                 double[] hidden2Raw = new double[hiddenSize2];
                 double[] output = new double[outputSize];
 
-                // Input to Hidden1
                 for (int j = 0; j < hiddenSize1; j++) {
                     double sum = biasHidden1[j];
                     for (int i = 0; i < inputSize; i++) {
@@ -557,7 +528,6 @@ class NeuralNetwork {
                     hidden1[j] = relu(sum);
                 }
 
-                // Hidden1 to Hidden2
                 for (int j = 0; j < hiddenSize2; j++) {
                     double sum = biasHidden2[j];
                     for (int i = 0; i < hiddenSize1; i++) {
@@ -566,8 +536,6 @@ class NeuralNetwork {
                     hidden2Raw[j] = sum;
                     hidden2[j] = relu(sum);
                 }
-
-                // Hidden2 to Output
                 for (int j = 0; j < outputSize; j++) {
                     double sum = biasOutput[j];
                     for (int i = 0; i < hiddenSize2; i++) {
@@ -576,22 +544,18 @@ class NeuralNetwork {
                     output[j] = sigmoid(sum);
                 }
 
-                // Calculate loss
                 for (int i = 0; i < outputSize; i++) {
                     totalLoss += Math.pow(target[i] - output[i], 2);
                 }
 
-                // Backpropagation
                 double[] outputError = new double[outputSize];
                 double[] hidden2Error = new double[hiddenSize2];
                 double[] hidden1Error = new double[hiddenSize1];
 
-                // Output layer error
                 for (int i = 0; i < outputSize; i++) {
                     outputError[i] = (output[i] - target[i]) * output[i] * (1 - output[i]);
                 }
 
-                // Hidden2 layer error
                 for (int i = 0; i < hiddenSize2; i++) {
                     double error = 0;
                     for (int j = 0; j < outputSize; j++) {
@@ -600,7 +564,6 @@ class NeuralNetwork {
                     hidden2Error[i] = error * reluDerivative(hidden2Raw[i]);
                 }
 
-                // Hidden1 layer error
                 for (int i = 0; i < hiddenSize1; i++) {
                     double error = 0;
                     for (int j = 0; j < hiddenSize2; j++) {
@@ -609,8 +572,6 @@ class NeuralNetwork {
                     hidden1Error[i] = error * reluDerivative(hidden1Raw[i]);
                 }
 
-                // Update weights and biases
-                // Hidden2 to Output
                 for (int i = 0; i < hiddenSize2; i++) {
                     for (int j = 0; j < outputSize; j++) {
                         weightsHidden2Output[i][j] -= learningRate * outputError[j] * hidden2[i];
@@ -620,7 +581,6 @@ class NeuralNetwork {
                     biasOutput[i] -= learningRate * outputError[i];
                 }
 
-                // Hidden1 to Hidden2
                 for (int i = 0; i < hiddenSize1; i++) {
                     for (int j = 0; j < hiddenSize2; j++) {
                         weightsHidden1Hidden2[i][j] -= learningRate * hidden2Error[j] * hidden1[i];
@@ -630,7 +590,6 @@ class NeuralNetwork {
                     biasHidden2[i] -= learningRate * hidden2Error[i];
                 }
 
-                // Input to Hidden1
                 for (int i = 0; i < inputSize; i++) {
                     for (int j = 0; j < hiddenSize1; j++) {
                         weightsInputHidden1[i][j] -= learningRate * hidden1Error[j] * input[i];
@@ -641,7 +600,6 @@ class NeuralNetwork {
                 }
             }
 
-            // Print progress every 100 epochs
             if (epoch % 100 == 0) {
                 System.out.println("Epoch " + epoch + ", Loss: " + totalLoss / inputs.size());
             }
